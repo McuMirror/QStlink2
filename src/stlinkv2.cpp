@@ -700,7 +700,6 @@ bool stlinkv2::sendLoader() {
         return false;
     }
 
-//    this->writeMem32((*this->device)["sram_base"], m_loader.refData());
     this->writeRegister(mDevice->value("sram_base"), 15); // PC register to sram base.
 
     return true;
@@ -761,6 +760,17 @@ bool stlinkv2::setLoaderBuffer(const quint32 addr, const QByteArray& buf) {
     }
     emit bufferPct(100);
     return true;
+}
+
+bool stlinkv2::setLoaderStatus(quint32 status)
+{
+    using namespace Loader::Addr;
+    uchar ar_tmp[4];
+    qToLittleEndian(status, ar_tmp);
+    QByteArray write_buf;
+    write_buf.append((const char*)ar_tmp, sizeof ar_tmp);
+    return (this->writeMem32(PARAMS+OFFSET_STATUS, write_buf) > 0
+            && this->getLoaderStatus() == status);
 }
 
 quint32 stlinkv2::getLoaderStatus() {

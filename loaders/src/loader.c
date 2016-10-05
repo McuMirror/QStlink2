@@ -98,7 +98,10 @@ uint32_t GetPage(uint32_t Address);
 #if defined(STM32F1) || defined(STM32F1_LOW_MED)
 #define FLASH_OB_Erase FLASH_EraseOptionBytes
 #define FLASH_OB_Unlock()
+#define FLASH_OB_Launch()
 #define FLASH_OB_Lock()
+#define FLASH_OB_RDPConfig(x)
+#define OB_RDP_Level_0
 #elif defined(STM32F2) || defined(STM32F4)
 #define FLASH_OB_Erase() FLASH_OB_WRPConfig(OB_WRP_Sector_All, DISABLE)
 #elif defined(STM32L1)
@@ -128,6 +131,9 @@ uint32_t GetPage(uint32_t Address);
 #define MASK_VEREN (1 << 4) // Verification enable bit
 #define MASK_DELEN (1 << 5) // Delete enable bit
 
+#define MASK_PROTEC (1 << 6) // Unlock write protection enable bit
+#define MASK_PROTEC_OK (1 << 7) // Unlock write protection enable bit
+
 #define MASK_VERR (1 << 14) // Verification error
 #define MASK_ERR (1 << 15)  // Error
 
@@ -137,15 +143,11 @@ uint32_t GetPage(uint32_t Address);
 #define PARAMS ((PARAMS_TypeDef *)PARAMS_ADDR)
 
 typedef struct {
-  __IO uint32_t DEST; /*!Address offset: 0x00 - Destination in the flash.  Set
-                         by debugger.*/
-  __IO uint32_t
-      LEN; /*!Address offset: 0x04 - How many bytes we copy data from sram to
-              flash. Set by debugger.*/
-  __IO uint32_t
-      STATUS; /*!Address offset: 0x08 -  Status. Set by program and debugger. */
-  __IO uint32_t POS;  /*!Address offset: 0x0C -  Current position */
-  __IO uint32_t TEST; /*!Address offset: 0x10 -  For testing */
+  __IO uint32_t DEST;   /*!Address offset: 0x00 - Destination in the flash.  Set by debugger.*/
+  __IO uint32_t LEN;    /*!Address offset: 0x04 - How many bytes we copy data from sram to flash. Set by debugger.*/
+  __IO uint32_t STATUS; /*!Address offset: 0x08 - Status. Set by program and debugger. */
+  __IO uint32_t POS;    /*!Address offset: 0x0C - Current position */
+  __IO uint32_t TEST;   /*!Address offset: 0x10 - For testing */
 
 } PARAMS_TypeDef;
 
@@ -156,18 +158,26 @@ int loader(void) {
 
   uint32_t i, from, to;
   uint32_t erased_sectors = 0;
+  
+  if (PARAMS->STATUS & MASK_PROTEC)
+  {
+    PARAMS->STATUS &= ~MASK_PROTEC;
+    FLASH_Unlock();
+    FLASH_SetLatency(FLASH_Latency_0);
+    FLASH_OB_Unlock();
+    FLASH_OB_Erase();
+    FLASH_OB_RDPConfig(OB_RDP_Level_0);
+    PARAMS->STATUS |= MASK_PROTEC_OK;
+    FLASH_OB_Launch();
+  }
+
   for (i = 0; i < PARAMS_LEN; i += 4) { // Clear parameters
     mmio32(PARAMS_ADDR + i) = 0;
   }
 
-  FLASH_SetLatency(FLASH_Latency_0);
-  FLASH_OB_Unlock();
-  FLASH_OB_Erase();
-  FLASH_OB_Lock();
-
   while (1) {
 
-    asm volatile("bkpt"); // Halt core after init and before writing to flash.
+    asm volatile("bkpt"); // Halt core before each loop
     asm volatile("nop");
 
     PARAMS->STATUS &= ~MASK_STRT;    // Clear start bit

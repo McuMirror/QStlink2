@@ -28,6 +28,10 @@ namespace Loader {
         const quint32 SUCCESS = (1<<2); /**< TODO: describe */
         const quint32 DEL = (1<<3); /**< TODO: describe */
         const quint32 VEREN = (1<<4); /**< TODO: describe */
+        const quint32 DELEN = (1<<5); /**< TODO: describe */
+        const quint32 PROTEC = (1<<6); /**< TODO: describe */
+        const quint32 PROTEC_OK = (1<<7); /**< TODO: describe */
+        const quint32 VERR = (1<<14); /**< TODO: describe */
         const quint32 ERR = (1<<15); /**< TODO: describe */
     }
 

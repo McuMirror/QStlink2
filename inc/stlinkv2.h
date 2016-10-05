@@ -436,6 +436,12 @@ public slots:
     /**
      * @brief
      *
+     * @return bool
+     */
+    bool setLoaderStatus(quint32 status);
+    /**
+     * @brief
+     *
      * @return quint32
      */
     quint32 getLoaderStatus();

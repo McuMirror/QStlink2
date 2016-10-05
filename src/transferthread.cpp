@@ -82,6 +82,37 @@ void transferThread::sendWithLoader(const QString &filename)
     }
     emit sendLog("Loader uploaded");
 
+   if (mStlink->setLoaderStatus(Loader::Masks::PROTEC))
+       emit sendLog("Loader settings OK");
+
+    mStlink->runMCU(); // The loader unlocks the flash and reset.
+
+    uint wait = 0;
+    while (wait < 40 && mStlink->getStatus() == STLink::Status::CORE_RUNNING) { // Wait for the reset
+            QThread::msleep(100);
+            wait++;
+            if (mStop) break;
+            if (mStlink->getLoaderStatus() & Loader::Masks::PROTEC_OK) break;
+    }
+
+    if (mStlink->getLoaderStatus() & Loader::Masks::PROTEC_OK)
+        emit sendLog("Unlock complete");
+    else
+        emit sendLog("Unlock failed");
+
+    // Send loader again
+    mStlink->hardResetMCU();
+    mStlink->resetMCU();
+    mStlink->flush();
+    if (!mStlink->sendLoader())
+    {
+        emit sendLog("Failed to send loader!");
+        return;
+    }
+    emit sendLog("Loader uploaded");
+
+    if (mStlink->setLoaderStatus(0))
+        emit sendLog("Loader settings OK");
     mStlink->runMCU(); // The loader will stop at the beginning of the loop
 
     while (mStlink->getStatus() == STLink::Status::CORE_RUNNING) { // Wait for the breakpoint
