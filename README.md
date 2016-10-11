@@ -3,7 +3,7 @@
 
 [![GitHub version](https://badge.fury.io/gh/fpoussin%2Fqstlink2.svg)](https://badge.fury.io/gh/fpoussin%2Fqstlink2)  
 [![Travis Build Status](https://travis-ci.org/fpoussin/QStlink2.svg?branch=master)](https://travis-ci.org/fpoussin/QStlink2) Travis - Ubuntu 14.04 - Qt5.2.1  
-[![Jenkins Build Status](http://vps2.ntx.so/jenkins/buildStatus/icon?job=QStlink2)](http://vps2.ntx.so/jenkins/job/QStlink2/) Jenkins - Ubuntu 15.10 - Qt5.4.2  
+[![Jenkins Build Status](http://vps2.ntx.so/jenkins/buildStatus/icon?job=QStlink2)](http://vps2.ntx.so/jenkins/job/QStlink2/) Jenkins - Ubuntu 16.04 - Qt5.5.1  
 
 **Description**  
 
@@ -50,7 +50,7 @@ Ubuntu PPA:
     sudo make install  # Optional
 
 
-**Building in Windows**
+**Building on Windows**
 
 You will need to run these commands from MSVC's CLI (I use MSVC2015 community)
 You might need to install windows driver SDK (WDK) to get WinUSB libs/headers.
